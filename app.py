@@ -47,17 +47,17 @@ def playlist_page():
         # Add your playlist logic here
         st.write(f"Current Playlist ID: {st.session_state.playlist_id}")
 
-    df = mr.get(playlist_id)
-    print(df)
+        df = mr.get(playlist_id)
+        print(df)
     # st.dataframe(df[0])
-    st.dataframe(df[1])
-    
-    for i in range(df[0].shape[0]):
-        track = dict(df[0].iloc[i])
-        st.write(track["song_name"])
-        st.write(track["artist"])
-        st.image(track["track_img"], width=300)
-        st.audio(track["track_preview"])
+        st.dataframe(df[1])
+        
+        for i in range(df[0].shape[0]):
+            track = dict(df[0].iloc[i])
+            st.write(track["song_name"])
+            st.write(track["artist"])
+            st.image(track["track_img"], width=300)
+            st.audio(track["track_preview"])
     #print(playlist_id)
 
 
