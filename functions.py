@@ -3,7 +3,7 @@ import numpy as np
 import csv
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import cosine_similarity
-
+import random
 
 
 def filter_info(sp, playlist_id, username="Any user"):
@@ -177,13 +177,23 @@ def userInput(playlist_id, sp, all_sps):
 
     top_tracks_artists = []
     
-    artist_ids = set(list(playlist_songs["artist_id"]))
+    artist_ids = list(playlist_songs["artist_id"])
     album_ids = set(list(playlist_songs["album_id"]))
     track_ids = set(list(playlist_songs['song_id']))
     
  
     top_hits = pd.DataFrame(columns=["song_name", "song_id", "artist", "popularity"])
     all_album_tracks = pd.DataFrame() 
+    
+    for i in range(len(artist_ids)):
+        similar_art = sp.artist_related_artists(artist_ids[i])
+        all_artists = []    
+        for artist in similar_art['artists']:
+            all_artists.append(artist['id'])
+        random.shuffle(all_artists)
+        artist_ids.extend(all_artists[1:3])
+    
+    artist_ids = set(artist_ids)
     
     for artist_id in artist_ids:
         top_tracks_artists.append(pd.DataFrame(get_artist_top_tracks(artist_id, sp)))
@@ -214,6 +224,9 @@ def userInput(playlist_id, sp, all_sps):
 
     r_s_no_preview.reset_index(inplace=True, drop=True)
     recommended_songs.reset_index(inplace=True, drop=True)
+    
+    r_s_no_preview.drop_duplicates(subset=['song_name', 'artist'], inplace=True)
+    recommended_songs.drop_duplicates(subset=['song_name', 'artist'], inplace=True)
      
     return recommended_songs, r_s_no_preview
 

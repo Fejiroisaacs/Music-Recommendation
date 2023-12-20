@@ -1,6 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import functions as fn
+import pandas as pd
 
 def main():
     sp = get_SP("09f53c0a70fc4818ab7438fb2dff64dd", "fcfcaea7cc9a42f697da7ce6d4680d3d", "Fejiro Anigboro")
@@ -11,9 +12,11 @@ def main():
     all_sps = [sp1, sp2, sp3, sp4]
     
     
-    user = fn.userInput("7mVCbkMcSXApmQ08F9uUi5", sp, all_sps)
-    print(user[0])
-    print(user[1])
+    # user = fn.userInput("7mVCbkMcSXApmQ08F9uUi5", sp, all_sps)
+    # print(user[0])
+    # print(user[1])
+    # df = pd.read_csv("data/song_info_final.csv")
+    # print(df.describe())
     
     
 def get(playlist_id):
