@@ -1,18 +1,5 @@
 import pandas as pd
 import numpy as np
-import random
-import altair as alt
-import plotly.graph_objects as go
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-import networkx as nx
-import networkx.algorithms.community as nx_comm
-import matplotlib.cm as cm
-import matplotlib.pyplot as plt
-import plotly.express as px
-import pyvis
-from pyvis import network as net
-from copy import deepcopy
 import csv
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import cosine_similarity
