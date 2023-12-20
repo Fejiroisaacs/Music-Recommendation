@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from sklearn.neighbors import NearestNeighbors
 import functions as fn
 
 def main():
@@ -15,7 +14,6 @@ def main():
     
     
     user = fn.userInput("7mVCbkMcSXApmQ08F9uUi5", sp, all_sps)
-    
     print(user[0])
     print(user[1])
     

@@ -13,7 +13,6 @@ import plotly.express as px
 import pyvis
 from pyvis import network as net
 from copy import deepcopy
-import time
 import csv
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import cosine_similarity
@@ -39,7 +38,7 @@ def filter_info(sp, playlist_id, username="Any user"):
         #print(artist_name)
         
         # this gives the id of an artist
-        artist_id = s["track"]["artists"][0]["id"] # use href if I need to get the full api call for this -- split by "/" thne get [-1] element
+        artist_id = s["track"]["artists"][0]["id"] 
         #print(artist_id) 
         
         popularity = s["track"]["popularity"]
@@ -54,7 +53,8 @@ def filter_info(sp, playlist_id, username="Any user"):
             album_id = None
            
         
-        info_list.append({"song_name" : song_name, "song_id": song_id, "artist" : artist_name, "artist_id": artist_id, "album_type": album_type, "album_id": album_id, "popularity": popularity})
+        info_list.append({"song_name" : song_name, "song_id": song_id, "artist" : artist_name, "artist_id": artist_id,\
+            "album_type": album_type, "album_id": album_id, "popularity": popularity})
         
     
     return pd.DataFrame(info_list)
@@ -84,7 +84,7 @@ def csv_writer(info):
         writer.writerow(info) # Use writerow for single list
 
 
-def get_audio_features_slowly(track_info, all_sps): #replace this(sp) -- since using jhub, can leave this for now.
+def get_audio_features_slowly(track_info, all_sps): 
     track_dict_list = []
     tracker = 0
     for track in track_info:
@@ -98,7 +98,7 @@ def get_audio_features_slowly(track_info, all_sps): #replace this(sp) -- since u
         print(tracker)
     
     track_info_df = pd.DataFrame()
-    
+
     for track in track_dict_list:
         track_dict_df = pd.DataFrame(track[0], [0])
         track_info_df = pd.concat([track_info_df, track_dict_df], ignore_index=True)
@@ -141,13 +141,17 @@ def get_our_recommended_songs(track_df, sp):
     database_tracks = pd.read_csv("data/song_info_final.csv")
     database_matrix = database_tracks[matrix_cols].to_numpy()
     
-    neigh = NearestNeighbors(n_neighbors=1)
+    neigh = NearestNeighbors(n_neighbors=2)
     neigh.fit(database_matrix)
     
     song_indexes = []
 
     for row in user_track_matrix:
-        song_indexes.append(int(neigh.kneighbors([row], return_distance=False)[0]))
+        
+        neighbors = neigh.kneighbors([row], return_distance=False)[0]
+        for i in neighbors:
+            song_indexes.append(int(i))
+
         similarities = cosine_similarity([row], database_matrix)
         song_indexes.append(np.argmax(similarities))
         
@@ -159,7 +163,7 @@ def get_our_recommended_songs(track_df, sp):
 
 def get_database_track_preview(songs_df, sp):
     track_ids = list(songs_df["id"])
-    other_dataFrame = pd.DataFrame(columns=["song_name", "song_id", "artist", "track_preview", "track_img"])
+    other_dataFrame = pd.DataFrame(columns=["song_name", "song_id", "artist", "track_preview", "track_img", "popularity"])
     index = 0
     
     for track_id in track_ids:
@@ -170,9 +174,13 @@ def get_database_track_preview(songs_df, sp):
         song_id = track_info['id']
         artist_name = track_info['album']['artists'][0]['name']
         popularity = track_info['popularity']
-        df = pd.DataFrame({"song_name": track_name , "song_id": song_id, "artist": artist_name, "track_preview": preview, "track_img": image}, [index])
+        df = pd.DataFrame({"song_name": track_name , "song_id": song_id, "artist": artist_name, "track_preview": preview, \
+            "track_img": image,  "popularity": popularity}, [index])
         other_dataFrame = pd.concat([other_dataFrame, df],  ignore_index=True)
         index+=1
+    
+    other_dataFrame.sort_values(by='popularity', inplace=True, ignore_index=True)
+    other_dataFrame.drop('popularity', axis=1, inplace=True)
     
     return other_dataFrame
 
@@ -200,12 +208,16 @@ def userInput(playlist_id, sp, all_sps):
         
     top_hits = top_hits.drop_duplicates().sort_values(by='popularity', ignore_index=True)
     top_hits = top_hits.drop('popularity', axis=1)
+    top_hits = top_hits.sample(frac=0.5).reset_index(drop=True)
     
     for album_id in album_ids:
-        all_album_tracks = pd.concat([all_album_tracks, get_album_tracks(sp, album_id)], ignore_index=True)
+        album_tracks = get_album_tracks(sp, album_id)
+        all_album_tracks = pd.concat([all_album_tracks, \
+            album_tracks.sample(n=2) if album_tracks.shape[0] > 2 else album_tracks], ignore_index=True)
     
 
     all_album_tracks = all_album_tracks.drop_duplicates(ignore_index=True)
+    all_album_tracks = all_album_tracks.sample(frac=1).reset_index(drop=True)
     
     track_data = get_audio_features_slowly(track_ids, all_sps)
     
@@ -230,7 +242,8 @@ def get_album_tracks(sp, album_id):
     index = 0
     
     for track in album_track_info:
-        df = pd.DataFrame({"song_name": track["name"] , "song_id": track["id"], 'artist': artist_name, "track_preview": track['preview_url'], "track_img": track_img}, [index])
+        df = pd.DataFrame({"song_name": track["name"] , "song_id": track["id"], 'artist': artist_name, \
+            "track_preview": track['preview_url'], "track_img": track_img}, [index])
         album_df = pd.concat([album_df, df], ignore_index=True)
         index += 1
         
