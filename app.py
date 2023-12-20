@@ -68,15 +68,19 @@ def recommendation_page(currently_playing_index):
     st.cache()
     df = pd.read_csv("data/recommended.csv")
     currently_playing_track = dict(df.iloc[currently_playing_index])
-
+    print(currently_playing_track)
     # Create a placeholder for "Currently Playing" content
-    st.session_state.currently_playing_placeholder = st.empty()
+    
+    st.session_state.currently_playing_song = st.empty()
+    st.session_state.currently_playing_artist = st.empty()
+    st.session_state.currently_playing_image = st.empty()
+    st.session_state.currently_playing_audio = st.empty()
 
     #Display currently playing song details
-    st.session_state.currently_playing_placeholder.write(currently_playing_track["song_name"])
-    st.session_state.currently_playing_placeholder.write(currently_playing_track["artist"])
-    st.session_state.currently_playing_placeholder.image(currently_playing_track["track_img"], width=300)
-    st.session_state.currently_playing_placeholder.audio(currently_playing_track["track_preview"], format="audio/mp3")
+    st.session_state.currently_playing_song.write(currently_playing_track["song_name"])
+    st.session_state.currently_playing_artist.write(currently_playing_track["artist"])
+    st.session_state.currently_playing_image.image(currently_playing_track["track_img"], width=300)
+    st.session_state.currently_playing_audio.audio(currently_playing_track["track_preview"], format="audio/mp3")
 
     # Create a section for "Up Next"
     st.title("Up Next")
@@ -91,17 +95,15 @@ def recommendation_page(currently_playing_index):
                 
                 st.session_state.current_song = i
                 st.session_state.currently_playing_placeholder.empty()  # Clear the placeholder
-                #recommendation_page(st.session_state.current_song)
                 
                 currently_playing_index = i
                 currently_playing_track = dict(df.iloc[currently_playing_index])
 
                 # Update the "Currently Playing" section based on the selected song
-                st.session_state.currently_playing_placeholder.empty()  # Clear the placeholder
-                st.session_state.currently_playing_placeholder.write(currently_playing_track["song_name"])
-                st.session_state.currently_playing_placeholder.write(currently_playing_track["artist"])
-                st.session_state.currently_playing_placeholder.image(currently_playing_track["track_img"], width=300)
-                st.session_state.currently_playing_placeholder.audio(currently_playing_track["track_preview"], format="audio/mp3")
+                st.session_state.currently_playing_song.write(currently_playing_track["song_name"])
+                st.session_state.currently_playing_artist.write(currently_playing_track["artist"])
+                st.session_state.currently_playing_image.image(currently_playing_track["track_img"], width=300)
+                st.session_state.currently_playing_audio.audio(currently_playing_track["track_preview"], format="audio/mp3")
                     
                 
                 
