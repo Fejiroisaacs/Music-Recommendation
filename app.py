@@ -1,42 +1,66 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import music_rec as mr
-import random
 
 st.set_page_config(layout="wide")
 
-# Define the navigation bar function
+
 def navigation_bar():
     st.sidebar.markdown("# Navigation")
     if st.sidebar.button("Home"):
         st.session_state.page = "Home"
-        #st.experimental_rerun()
+        st.experimental_rerun()
+    # Add buttons for navigation
+    if st.sidebar.button("Explore"):
+        st.session_state.page = "Explore"
+        st.experimental_rerun()
 
-# Define functions for each page
+    if st.sidebar.button("Playlist"):
+        st.session_state.page = "Playlist"
+        st.experimental_rerun()
+    
+    if st.sidebar.button("Chosen Tunes"):
+        st.session_state.page = "Recommendation"
+        st.experimental_rerun()
+
+
 def home_page():
     navigation_bar() # Include the navigation bar on the home page
-    st.title("Music Recommendation Website")
-    st.write("Welcome to the home page!")
-
-# Add buttons for navigation
-if st.button("Explore Page"):
-    st.session_state.page = "Explore"
-    st.experimental_rerun()
-
-if st.button("Playlist Page"):
-    st.session_state.page = "Playlist"
-    st.experimental_rerun()
-
+    
+    
+    st.markdown(f"<h1 style='font-weight: bold; color: darkorange; text-align: center'>Welcome to Choosey Tunes!</h1>", unsafe_allow_html=True)
+    st.divider()
+    col1, col2 = st.columns([1, 1], gap="large")
+    col1.write("")
+    col1.write("")
+    col1.write("")
+    col1.write("")
+    col1.write("")
+    col1.write("")
+    
+    col1.markdown(f"<h2 style='font-size: larger;'>Choosey Tunes recommends music for you based on your Spotify playlists.</h2>", unsafe_allow_html=True)
+    col1.markdown(f"<h2 style='font-size: larger;'>Discover new songs on the <b>Explore page!</b></h2>", unsafe_allow_html=True)
+    col1.markdown(f"<h2 style='font-size: larger;'>Import your Spotify playlist and discover new songs.</h2>", unsafe_allow_html=True)
+    
+    
+    col1.write("")
+    col1.write("")
+    col1.write("")
+    
+    col1.markdown(f"<p style='font-size: larger;'>To import your playlist, paste in the playlist ID from the URL:</p>", unsafe_allow_html=True)
+    col1.image("images/how_to.png", width=500)
+    col2.image("images/choosey_tunes.png", width=500, caption='The New Way to Discover Music')   
+    
+    st.divider() 
+    st.write("")
 
 
 def explore_page():
     navigation_bar() # Include the navigation bar on the explore page
     st.title("Explore Page")
     st.write("This is the explore page.")
-# Add your explore logic here
 
-# Define the playlist page function
+
 def playlist_page():
     navigation_bar()  # Include the navigation bar on the playlist page
     st.title("Playlist")
@@ -58,77 +82,44 @@ def playlist_page():
         
         st.session_state.page = "Recommendation"
         st.experimental_rerun()
-                    
+        
 
-def recommendation_page(currently_playing_index):
-    # navigation_bar()  # Include the navigation bar on the recommendation page
-    # st.session_state.page = "Recommendation"
-    
-    st.cache()
+def recommendation_page():
+    navigation_bar()  # Include the navigation bar on the recommendation page
+
     df = pd.read_csv("data/recommended.csv")
     st.session_state.currently_playing_track = st.empty()
-    st.session_state.currently_playing_track = dict(df.iloc[currently_playing_index])
-
-    # Create a placeholder for "Currently Playing" content
-    
-    # st.session_state.currently_playing_song = st.empty()
-    # st.session_state.currently_playing_artist = st.empty()
-    # st.session_state.currently_playing_image = st.empty()
-    # st.session_state.currently_playing_audio = st.empty()
-
-    # Display currently playing song details to the right of the image
-    # st.session_state.col1, st.session_state.col2 = st.empty(), st.empty()
-    # st.session_state.col1, st.session_state.col2 = st.columns([1, 2])
-
-    # # Display the image in the first column
-    # st.session_state.col1.image(st.session_state.currently_playing_track["track_img"], width=300)
-
-    # # Display the song name and artist name in the second column
-    # st.session_state.col2.markdown(f"<h1 style='font-weight: bold;'>{st.session_state.currently_playing_track['song_name']}</h1>", unsafe_allow_html=True)
-    # st.session_state.col2.markdown(f"<h2 style='font-size: larger;'>{st.session_state.currently_playing_track['artist']}</h2>", unsafe_allow_html=True)
-
-    # # Add a spacer for better separation
-    # st.session_state.col2.write("")  # You can adjust the number of empty lines for better spacing
-
-    # # Display the audio player
-    # st.session_state.col2.audio(st.session_state.currently_playing_track["track_preview"], format="audio/mp3")
+    st.session_state.currently_playing_track = dict(df.iloc[st.session_state.current_song])
 
 
-
-
-    # Create a section for "Up Next"
+    # section for "Up Next"
     st.title("Chosen Tunes")
+    
     # Display the list of songs in "Up Next"
     for i in range(df.shape[0]):
-        if i != currently_playing_index:  # Exclude the currently playing song
-            track = dict(df.iloc[i])
+        
+        track = dict(df.iloc[i])
+        
+        if st.button(f"{track['song_name']} - {track['artist']}\n\n", key=i):
+            
+            st.session_state.current_song = i
+            
+            st.session_state.currently_playing_track = dict(df.iloc[st.session_state.current_song])
+            st.session_state.col1, st.session_state.col2 = st.columns([1, 2])
 
-            # Button to move the song to "Currently Playing" when clicked
-           
-            if st.button(f"{track['song_name']} - {track['artist']}\n\n", key=i):
-                
-                st.session_state.current_song = i
-                
-                currently_playing_index = i
-                
-                st.session_state.currently_playing_track = dict(df.iloc[currently_playing_index])
-                st.session_state.col1, st.session_state.col2 = st.columns([1, 2])
+            # Display the image in the first column
+            st.session_state.col1.image(st.session_state.currently_playing_track["track_img"], width=300)
 
-                # Display the image in the first column
-                st.session_state.col1.image(st.session_state.currently_playing_track["track_img"], width=300)
+            # Display the song name and artist name in the second column
+            st.session_state.col2.write("") 
+            st.session_state.col2.write("") 
+            st.session_state.col2.markdown(f"<h1 style='font-weight: bold;'>{st.session_state.currently_playing_track['song_name']}</h1>", unsafe_allow_html=True)
+            st.session_state.col2.markdown(f"<h2 style='font-size: larger;'>{st.session_state.currently_playing_track['artist']}</h2>", unsafe_allow_html=True)
 
-                # Display the song name and artist name in the second column
-                st.session_state.col2.markdown(f"<h1 style='font-weight: bold;'>{st.session_state.currently_playing_track['song_name']}</h1>", unsafe_allow_html=True)
-                st.session_state.col2.markdown(f"<h2 style='font-size: larger;'>{st.session_state.currently_playing_track['artist']}</h2>", unsafe_allow_html=True)
+            st.session_state.col2.write("") 
 
-                # Add a spacer for better separation
-                st.session_state.col2.write("")  # You can adjust the number of empty lines for better spacing
-
-                # Display the audio player
-                st.session_state.col2.audio(st.session_state.currently_playing_track["track_preview"], format="audio/mp3")
-
-                    
-                
+            # Display the audio 
+            st.session_state.col2.audio(st.session_state.currently_playing_track["track_preview"], format="audio/mp3")          
                 
    
 # Define the main function
@@ -146,7 +137,7 @@ def main():
     elif st.session_state.page == "Playlist":
         playlist_page()
     elif st.session_state.page == "Recommendation":
-        recommendation_page(st.session_state.current_song)
+        recommendation_page()
 
 # Run the app
 if __name__ == "__main__":
