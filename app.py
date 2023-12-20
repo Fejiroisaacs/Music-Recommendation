@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import music_rec as mr
+import random
 
 st.set_page_config(layout="wide")
 
@@ -10,7 +11,7 @@ def navigation_bar():
     st.sidebar.markdown("# Navigation")
     if st.sidebar.button("Home"):
         st.session_state.page = "Home"
-        st.experimental_rerun()
+        #st.experimental_rerun()
 
 # Define functions for each page
 def home_page():
@@ -26,6 +27,8 @@ if st.button("Explore Page"):
 if st.button("Playlist Page"):
     st.session_state.page = "Playlist"
     st.experimental_rerun()
+
+
 
 def explore_page():
     navigation_bar() # Include the navigation bar on the explore page
@@ -44,48 +47,67 @@ def playlist_page():
     # Save the playlist ID when the user clicks the submit button
     if st.button("Choose my tunes!"):
         st.session_state.playlist_id = playlist_id
-
+    
         # Add your playlist logic here
         st.write(f"Current Playlist ID: {st.session_state.playlist_id}")
 
+        # Get the playlist ID from the session state
         df = mr.get(playlist_id)
+        df[0].to_csv("data/recommended.csv", index=False)
+        df[1].to_csv("data/recommended_no_preview.csv", index=False)
+        
+        st.session_state.page = "Recommendation"
+        st.experimental_rerun()
+                    
 
-        # Create a section for "Currently Playing"
-        st.title("Currently Playing")
-        currently_playing_index = st.selectbox("Select a song to play", df[0].index, format_func=lambda i: df[0]["song_name"][i])
-        currently_playing_track = dict(df[0].iloc[currently_playing_index])
+def recommendation_page(currently_playing_index):
+    
+    st.title("Recommendation")
+    st.title("Currently Playing")
+    
+    df = pd.read_csv("data/recommended.csv")
+    currently_playing_track = dict(df.iloc[currently_playing_index])
 
-        # Create a placeholder for "Currently Playing" content
-        currently_playing_placeholder = st.empty()
+    # Create a placeholder for "Currently Playing" content
+    currently_playing_placeholder = st.empty()
 
-        # Display currently playing song details
-        currently_playing_placeholder.write(currently_playing_track["song_name"])
-        currently_playing_placeholder.write(currently_playing_track["artist"])
-        currently_playing_placeholder.image(currently_playing_track["track_img"], width=300)
-        currently_playing_placeholder.audio(currently_playing_track["track_preview"], format="audio/mp3")
+    #Display currently playing song details
+    currently_playing_placeholder.write(currently_playing_track["song_name"])
+    currently_playing_placeholder.write(currently_playing_track["artist"])
+    currently_playing_placeholder.image(currently_playing_track["track_img"], width=300)
+    currently_playing_placeholder.audio(currently_playing_track["track_preview"], format="audio/mp3")
 
-        # Create a section for "Up Next"
-        st.title("Up Next")
-        # Display the list of songs in "Up Next"
-        for i in range(df[0].shape[0]):
-            if i != currently_playing_index:  # Exclude the currently playing song
-                track = dict(df[0].iloc[i])
+    # Create a section for "Up Next"
+    st.title("Up Next")
+    # Display the list of songs in "Up Next"
+    for i in range(df.shape[0]):
+        if i != currently_playing_index:  # Exclude the currently playing song
+            track = dict(df.iloc[i])
 
-                # Button to move the song to "Currently Playing" when clicked
-                if st.button(f"{track['song_name']} - {track['artist']}\n\n", key=f"up_next_{i}"):
-                    currently_playing_index = i
-                    currently_playing_track = dict(df[0].iloc[currently_playing_index])
+            # Button to move the song to "Currently Playing" when clicked
+            st.session_state.key += 1
+            if st.button(f"{track['song_name']} - {track['artist']}\n\n", key=st.session_state.key):
+                
+                st.session_state.current_song = i
+                recommendation_page(st.session_state.current_song)
+    # currently_playing_index = i
+    # currently_playing_track = dict(df.iloc[currently_playing_index])
 
-                    # Update the "Currently Playing" section based on the selected song
-                    currently_playing_placeholder.empty()  # Clear the placeholder
-                    currently_playing_placeholder.write(currently_playing_track["song_name"])
-                    currently_playing_placeholder.write(currently_playing_track["artist"])
-                    currently_playing_placeholder.image(currently_playing_track["track_img"], width=300)
-                    currently_playing_placeholder.audio(currently_playing_track["track_preview"], format="audio/mp3")
-
+    # # Update the "Currently Playing" section based on the selected song
+    # currently_playing_placeholder.empty()  # Clear the placeholder
+    # currently_playing_placeholder.write(currently_playing_track["song_name"])
+    # currently_playing_placeholder.write(currently_playing_track["artist"])
+    # currently_playing_placeholder.image(currently_playing_track["track_img"], width=300)
+    # currently_playing_placeholder.audio(currently_playing_track["track_preview"], format="audio/mp3")
+          
+                
+                
+   
 # Define the main function
 def main():
     # Initialize session state
+    st.session_state.current_song = 0
+    st.session_state.key = 10
     if "page" not in st.session_state:
         st.session_state.page = "Home"
 
@@ -96,6 +118,8 @@ def main():
         explore_page()
     elif st.session_state.page == "Playlist":
         playlist_page()
+    elif st.session_state.page == "Recommendation":
+        recommendation_page(st.session_state.current_song)
 
 # Run the app
 if __name__ == "__main__":
