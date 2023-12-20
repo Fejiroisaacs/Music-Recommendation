@@ -71,6 +71,7 @@ def explore_page():
     
     df.rename(columns={"album_url": "artist_url", "id": "song_url"}, inplace=True)
     df = df.sort_values(by="popularity", ascending=False, ignore_index=True)
+    df.drop_duplicates(subset=["song_name", "artist_name"], inplace=True)
     st.write(df[["song_name", "artist_name", "song_url", "artist_url"]])
     st.write("")
     st.write("")
@@ -114,6 +115,7 @@ def recommendation_page():
     navigation_bar()  # Include the navigation bar on the recommendation page
 
     df = pd.read_csv("data/recommended.csv")
+    df.drop_duplicates(subset=["song_name", "artist"], inplace=True)
     st.session_state.currently_playing_track = st.empty()
     st.session_state.currently_playing_track = dict(df.iloc[st.session_state.current_song])
 
