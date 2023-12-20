@@ -58,7 +58,33 @@ def home_page():
 def explore_page():
     navigation_bar() # Include the navigation bar on the explore page
     st.title("Explore Page")
-    st.write("This is the explore page.")
+    st.write("Find a song you like? Click on the song name to listen to it on Spotify. Click on the artist name to discover more about the artist")
+    st.write("Search for song or artist in the search bar of the table below to find a specific song or artist")
+    
+    df = pd.read_csv("data/song_info_final.csv")
+    df = df[["song_name", "artist_name", "popularity", "id", "album_url"]]
+    song_ids = df["id"].to_list()
+    
+    for i in range(len(song_ids)):
+        song_ids[i] = "https://open.spotify.com/track/" + song_ids[i]
+    df["id"] = song_ids
+    
+    df.rename(columns={"album_url": "artist_url", "id": "song_url"}, inplace=True)
+    df = df.sort_values(by="popularity", ascending=False, ignore_index=True)
+    st.write(df[["song_name", "artist_name", "song_url", "artist_url"]])
+    st.write("")
+    st.write("")
+    st.write("")
+    st.write("")
+    
+    
+    a = df.to_numpy()
+    for row in a:
+        st.write(f"Track name - {row[0]} \
+                \n Artist - {row[1]}\
+                \n Click to listen - https://open.spotify.com/track/{row[3]}\
+                \n Discover artist - {row[4]}")
+        st.write("")
 
 
 def playlist_page():
