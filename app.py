@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import music_rec as mr
+from functions import get_contextual_songs as gcs
 
 st.set_page_config(layout="wide")
 
@@ -58,9 +59,8 @@ def home_page():
 def explore_page():
     navigation_bar() # Include the navigation bar on the explore page
     st.title("Explore Page")
-    st.write("Find a song you like? Click on the song name to listen to it on Spotify. Click on the artist name to discover more about the artist")
-    st.write("Search for song or artist in the search bar of the table below to find a specific song or artist")
-    
+    st.divider()
+
     df = pd.read_csv("data/song_info_final.csv")
     df = df[["song_name", "artist_name", "popularity", "id", "album_url"]]
     song_ids = df["id"].to_list()
@@ -72,20 +72,59 @@ def explore_page():
     df.rename(columns={"album_url": "artist_url", "id": "song_url"}, inplace=True)
     df = df.sort_values(by="popularity", ascending=False, ignore_index=True)
     df.drop_duplicates(subset=["song_name", "artist_name"], inplace=True)
+
+    
+    col3, col4 = st.columns([1, 1])
+    
+    col3.title("Discover New Songs")
+    col3.write("Find a song you like? Click on the song name to listen to it on Spotify. Click on the artist name to discover more about the artist")
+    col3.write("")
+    col3.write("")
+    
+    if col3.button("Discover New Songs", help="Click to discover new songs"):
+        discover_df = df.sample(n=10)
+        for row in discover_df.to_numpy():
+            col3.write(f"Track name - {row[0]} \
+                    \n Artist Name - {row[1]}\
+                    \n Click to listen - https://open.spotify.com/track/{row[3]}\
+                    \n Discover artist - {row[4]}")
+            col3.write("")
+
+    col3.write("")
+    col3.write("")
+    
+    col4.title("Contextual Discovery")
+
+    
+    place = col4.selectbox(
+        'Where are you',
+        ('Library', 'Dorm', 'Party'), 
+        key="place",
+        index=None,
+        placeholder="Choose your location",)
+    
+    mood = col4.selectbox(
+        'How are you feeling',
+        ('Happy', 'Sad'), 
+        key="mood", 
+        index=None,
+        placeholder="choose your mood",) 
+    
+    if col4.button("Discover"):
+        print(place, mood)
+        found_songs_df = gcs(place, mood)
+        for row in found_songs_df.to_numpy():
+            col4.write(f"Track name - {row[-5]} \
+                    \n Artist Name - {row[-2]}\
+                    \n Click to listen - https://open.spotify.com/track/{row[-11]}\
+                    \n Discover artist - {row[-4]}")
+            col4.write("")
+    
+    st.divider()
+    
+    st.title("Search for a Song or Artist")
+    st.write("Use the search bar of the table below to find a specific song or artist in our database")
     st.write(df[["song_name", "artist_name", "song_url", "artist_url"]])
-    st.write("")
-    st.write("")
-    st.write("")
-    st.write("")
-    
-    
-    a = df.to_numpy()
-    for row in a:
-        st.write(f"Track name - {row[0]} \
-                \n Artist - {row[1]}\
-                \n Click to listen - https://open.spotify.com/track/{row[3]}\
-                \n Discover artist - {row[4]}")
-        st.write("")
 
 
 def playlist_page():
