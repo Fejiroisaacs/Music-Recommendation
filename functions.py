@@ -250,3 +250,89 @@ def get_album_tracks(sp, album_id):
     return album_df
 
 
+def get_contextual_songs(place, mood):
+    
+    all_songs = pd.read_csv("data/song_info_final.csv")
+    
+    if place == None and mood == None:
+        print("place and mood is none")
+        return all_songs.sample(n=10)
+    
+    danceability = dict(all_songs["danceability"].describe())
+    energy = dict(all_songs["energy"].describe())
+    loudness = dict(all_songs["loudness"].describe())
+    tempo = dict(all_songs["tempo"].describe())
+    liveness = dict(all_songs["liveness"].describe())
+    
+    all_places = {
+        "Library" : {"danceability": [danceability["min"], danceability["max"]],
+                     "energy": [energy["min"], energy["50%"]],
+                     "loudness": [loudness["25%"], loudness["75%"]],
+                     "tempo": [tempo["min"], tempo["max"]],
+                     "liveness": [liveness["min"], liveness["max"]]},
+        
+        "Dorm" : {"danceability": [danceability["min"], danceability["max"]],
+                     "energy": [energy["min"], energy["50%"]],
+                     "loudness": [loudness["50%"], loudness["max"]],
+                     "tempo": [tempo["min"], tempo["max"]],
+                     "liveness": [liveness["min"], liveness["max"]]},
+        
+        "Party" : {"danceability": [danceability["50%"], danceability["max"]],
+                     "energy": [energy["50%"], energy["max"]],
+                     "loudness": [loudness["50%"], loudness["max"]],
+                     "tempo": [tempo["min"], tempo["max"]],
+                     "liveness": [liveness["50%"], liveness["max"]]}   
+    }
+    
+    
+    if place != None:
+        current_place = all_places[place]
+        all_songs = all_songs.loc[(all_songs["danceability"] >= current_place["danceability"][0]) & \
+            (all_songs["danceability"] <= current_place["danceability"][1])]
+        all_songs = all_songs.loc[(all_songs["energy"] >= current_place["energy"][0]) & \
+            (all_songs["energy"] <= current_place["energy"][1])]
+        all_songs = all_songs.loc[(all_songs["loudness"] >= current_place["loudness"][0]) & \
+            (all_songs["loudness"] <= current_place["loudness"][1])]
+        all_songs = all_songs.loc[(all_songs["tempo"] >= current_place["tempo"][0]) & \
+            (all_songs["tempo"] <= current_place["tempo"][1])]
+        all_songs = all_songs.loc[(all_songs["liveness"] >= current_place["liveness"][0]) & \
+            (all_songs["liveness"] <= current_place["liveness"][1])]
+        
+        
+    danceability = dict(all_songs["danceability"].describe())
+    energy = dict(all_songs["energy"].describe())
+    loudness = dict(all_songs["loudness"].describe())
+    tempo = dict(all_songs["tempo"].describe())
+    liveness = dict(all_songs["liveness"].describe())
+    
+    all_moods = {
+        "Happy" : {"danceability": [danceability["75%"], danceability["max"]],
+                     "energy": [energy["50%"], energy["max"]],
+                     "loudness": [loudness["50%"], loudness["max"]],
+                     "tempo": [tempo["50%"], tempo["max"]]},
+        
+        "Sad" : {"danceability": [danceability["min"], danceability["max"]],
+                     "energy": [energy["min"], energy["25%"]],
+                     "loudness": [loudness["min"], loudness["25%"]],
+                     "tempo": [tempo["min"], tempo["25%"]],
+                     "mode": 0}
+    }
+        
+    if mood != None:
+        current_mood = all_moods[mood]
+        
+        all_songs = all_songs.loc[(all_songs["danceability"] >= current_mood["danceability"][0]) & \
+            (all_songs["danceability"] <= current_mood["danceability"][1])]
+        all_songs = all_songs.loc[(all_songs["energy"] >= current_mood["energy"][0]) & \
+            (all_songs["energy"] <= current_mood["energy"][1])]
+        all_songs = all_songs.loc[(all_songs["loudness"] >= current_mood["loudness"][0]) & \
+            (all_songs["loudness"] <= current_mood["loudness"][1])]
+        all_songs = all_songs.loc[(all_songs["tempo"] >= current_mood["tempo"][0]) & \
+            (all_songs["tempo"] <= current_mood["tempo"][1])]
+        
+        if mood == "Sad":
+            all_songs = all_songs.loc[(all_songs["mode"] == current_mood["mode"])]
+        
+    
+    return all_songs.sample(n=10) if all_songs.shape[0] > 10 else all_songs
+    
