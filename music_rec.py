@@ -1,9 +1,21 @@
+'''
+Author : Fejiro Anigboro
+Class : MUSC 255
+Date: 12/2023
+Description: This module serves as the main module for the Choosey Tunes app.  
+It contains the main method and the get_SP method.  
+The main method is used to test the functions in the functions.py file.  
+The get_SP method is used to create a spotify client object.
+'''
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import functions as fn
 import pandas as pd
 
 def main():
+    """
+        This method is used to test the functions in the functions.py file
+    """
     sp = get_SP("09f53c0a70fc4818ab7438fb2dff64dd", "fcfcaea7cc9a42f697da7ce6d4680d3d", "Fejiro Anigboro")
     sp1 = get_SP("922db1c93c90406fb8608e2729577cf4", "8561aa0a985f470f91193d912a494287", "my_spotify_name")
     sp2 = get_SP("79724bfb388b451e9d80af9972ed118f", "4c1784725f7a468aa97127ee54d63209", "rami")
@@ -20,7 +32,15 @@ def main():
     
     
 def get(playlist_id):
-    
+    """
+        This method handels the call from the app.py file and returns the playlist of recommended songs
+
+    Args:
+        playlist_id (str): the playlist id of the user
+
+    Returns:
+        tuple: a tuple of two dataframes, the first one contains the recommended songs with preview and the second one contains the recommended songs without preview
+    """
     sp = get_SP("09f53c0a70fc4818ab7438fb2dff64dd", "fcfcaea7cc9a42f697da7ce6d4680d3d", "Fejiro Anigboro")
     sp1 = get_SP("922db1c93c90406fb8608e2729577cf4", "8561aa0a985f470f91193d912a494287", "my_spotify_name")
     sp2 = get_SP("79724bfb388b451e9d80af9972ed118f", "4c1784725f7a468aa97127ee54d63209", "rami")
@@ -34,6 +54,10 @@ def get(playlist_id):
 
 
 def get_SP(ID, Secret, Name):
+    """
+        This method creates returns a spotify client object
+        
+    """
     CLIENT_ID = ID
     CLIENT_SECRET = Secret
     my_username = Name

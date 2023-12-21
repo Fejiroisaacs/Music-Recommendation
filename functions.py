@@ -1,12 +1,26 @@
+'''
+Author : Fejiro Anigboro
+Class : MUSC 255
+Date: 12/2023
+Description: This module implements the functions used for the Choosey Tunes app. 
+'''
+
 import pandas as pd
 import numpy as np
-import csv
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import cosine_similarity
 import random
 
 
 def filter_info(sp, playlist_id, username="Any user"):
+    """
+    This function filters the information from the playlist and returns a dataframe with the song name, artist name, artist id, album type, album id, and popularity
+
+    Args:
+        sp : the spotify client object
+        playlist_id (str): the playlist id of the user
+        username (str): the username of the user
+    """
     r = sp.user_playlist_tracks(username, playlist_id)
     t = r['items']
     
@@ -18,24 +32,14 @@ def filter_info(sp, playlist_id, username="Any user"):
     for s in t: 
         album_type = s['track']['album']['album_type'] 
         song_id = s["track"]["id"]
-        song_name = s["track"]["name"]
-        #print(song_name)
-        
-        artist_name = s["track"]["artists"][0]["name"]
-        #print(artist_name)
-        
-        # this gives the id of an artist
+        song_name = s["track"]["name"]        
+        artist_name = s["track"]["artists"][0]["name"]  
         artist_id = s["track"]["artists"][0]["id"] 
-        #print(artist_id) 
-        
         popularity = s["track"]["popularity"]
-        
-        #print(s)
-        
+
         try:
-            # getting the url of the album
+            # getting the url of the album. Sometimes the album url is not available so None is returned
             album_id = s['track']['album']['id']
-            #print(album_id) # split by same condiiton above
         except:
             album_id = None
            
@@ -48,6 +52,13 @@ def filter_info(sp, playlist_id, username="Any user"):
 
 
 def get_artist_top_tracks(artist_id, sp):
+    """
+        This function returns the top 10 songs of the artist
+
+    Args:
+        artist_id (str): the id of the artist
+        sp (Spotify client object): the spotify client object
+    """
     top_hits = sp.artist_top_tracks(artist_id, country='US')
     info_list = []
     
@@ -59,19 +70,22 @@ def get_artist_top_tracks(artist_id, sp):
         cover_img = track['album']['images'][1]['url']
         track_preview = track["preview_url"]
         
-        info_list.append({"song_name" : song_name, "song_id" : song_id, "artist" : artist_name, "popularity": popularity, "track_preview": track_preview, "track_img": cover_img})
+        info_list.append({"song_name" : song_name, "song_id" : song_id, "artist" : artist_name, \
+            "popularity": popularity, "track_preview": track_preview, "track_img": cover_img })
     
     return pd.DataFrame(info_list)
 
 
-def csv_writer(info):
-    with open('Song_data.csv', 'a', newline='') as file:
-        # Step 4: Using csv.writer to write the list to the CSV file
-        writer = csv.writer(file)
-        writer.writerow(info) # Use writerow for single list
-
-
 def get_audio_features_slowly(track_info, all_sps): 
+    """
+        This function returns the audio features of the songs in the given dataframe
+    Args:
+        track_info (df): the dataframe containing the song information
+        all_sps (list[sp client objects]): a list of all the spotify client objects
+
+    Returns:
+        a call to the get_our_recommended_songs function
+    """
     track_dict_list = []
     tracker = 0
     for track in track_info:
@@ -95,6 +109,16 @@ def get_audio_features_slowly(track_info, all_sps):
 
 
 def get_our_recommended_songs(track_df, sp):
+    """
+    This function returns the recommended songs based on the songs in the track_df dataframe from our database of songs
+
+    Args:
+        track_df (df): the dataframe containing the song information
+        sp (sp client object): the spotify client object
+
+    Returns:
+        a call to the get_database_track_preview function using the similar songs found
+    """
     matrix_cols = [  'danceability',
                      'energy',
                      'key',
@@ -149,6 +173,16 @@ def get_our_recommended_songs(track_df, sp):
 
 
 def get_database_track_preview(songs_df, sp):
+    """
+        This function adds the preview url and the cover image of the songs to the given dataframe
+
+    Args:
+        songs_df (df): the dataframe containing the song information
+        sp (sp client object): the spotify client object
+
+    Returns:
+        df: the dataframe containing the song information
+    """
     track_ids = list(songs_df["id"])
     other_dataFrame = pd.DataFrame(columns=["song_name", "song_id", "artist", "track_preview", "track_img", "popularity"])
     index = 0
@@ -172,6 +206,17 @@ def get_database_track_preview(songs_df, sp):
     return other_dataFrame
 
 def userInput(playlist_id, sp, all_sps):
+    """
+        This function returns the recommended songs based on the songs in the given playlist
+
+    Args:
+        playlist_id (str): the playlist id of the user
+        sp (sp client object): a spotify client object
+        all_sps (list[sp client objects]): a list of all the spotify client objects
+
+    Returns:
+        tuple: a tuple of two dataframes, the first one contains the recommended songs with preview and the second one contains the recommended songs without preview
+    """
     playlist_songs = filter_info(sp, playlist_id)
     playlist_songs = playlist_songs.drop_duplicates(subset=['artist_id'])
 
@@ -236,6 +281,16 @@ def userInput(playlist_id, sp, all_sps):
 
 
 def get_album_tracks(sp, album_id):
+    """
+        This function returns the tracks of a given album
+
+    Args:
+        sp (spotify client object): the spotify client object
+        album_id (str): the id of the album
+
+    Returns:
+        _type_: _description_
+    """
     album_info = sp.album(album_id=album_id)
     album_track_info = album_info['tracks']['items']
     track_img = album_info['images'][1]['url']
@@ -254,7 +309,18 @@ def get_album_tracks(sp, album_id):
     return album_df
 
 
-def get_contextual_songs(place, mood):
+def get_contextual_songs(place: str, mood: str):
+    
+    """
+        This function returns the songs based on the place and mood given by the user
+
+    Args:
+        place (str): the place the user is at
+        mood (str): the mood of the user
+        
+    Returns:
+        df: a random sample of 10 songs that match the place and mood given by the user
+    """
     
     all_songs = pd.read_csv("data/song_info_final.csv")
     
@@ -268,6 +334,7 @@ def get_contextual_songs(place, mood):
     tempo = dict(all_songs["tempo"].describe())
     liveness = dict(all_songs["liveness"].describe())
     
+    # defining our variable adjustments for each place
     all_places = {
         "Library" : {"danceability": [danceability["min"], danceability["max"]],
                      "energy": [energy["min"], energy["50%"]],
@@ -303,12 +370,14 @@ def get_contextual_songs(place, mood):
             (all_songs["liveness"] <= current_place["liveness"][1])]
         
         
+    # recalculate the stats for the mood
     danceability = dict(all_songs["danceability"].describe())
     energy = dict(all_songs["energy"].describe())
     loudness = dict(all_songs["loudness"].describe())
     tempo = dict(all_songs["tempo"].describe())
     liveness = dict(all_songs["liveness"].describe())
     
+    # defining our variable adjustments for each mood
     all_moods = {
         "Happy" : {"danceability": [danceability["75%"], danceability["max"]],
                      "energy": [energy["50%"], energy["max"]],

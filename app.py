@@ -1,3 +1,9 @@
+'''
+Authors : Fejiro Anigboro, Idan Hussain, Rami Nasr
+Class : MUSC 255
+Date: 12/2023
+Description: This module serves as the main module for the Choosey Tunes app.
+'''
 import streamlit as st
 import pandas as pd
 import music_rec as mr
@@ -7,6 +13,9 @@ st.set_page_config(layout="wide")
 
 
 def navigation_bar():
+    """
+        This method creates the navigation bar on the left side of the app
+    """
     st.sidebar.markdown("# Navigation")
     if st.sidebar.button("Home"):
         st.session_state.page = "Home"
@@ -26,6 +35,9 @@ def navigation_bar():
 
 
 def home_page():
+    """
+        This method creates the home page of the app
+    """
     navigation_bar() # Include the navigation bar on the home page
     
     
@@ -57,6 +69,9 @@ def home_page():
 
 
 def explore_page():
+    """
+        This method creates the explore page of the app
+    """
     navigation_bar() # Include the navigation bar on the explore page
     st.title("Explore Page")
     st.divider()
@@ -65,6 +80,7 @@ def explore_page():
     df = df[["song_name", "artist_name", "popularity", "id", "album_url"]]
     song_ids = df["id"].to_list()
     
+    # updating the song ids to be links to the song on spotify
     for i in range(len(song_ids)):
         song_ids[i] = "https://open.spotify.com/track/" + song_ids[i]
     df["id"] = song_ids
@@ -81,6 +97,7 @@ def explore_page():
     col3.write("")
     col3.write("")
     
+    # display the random 10 songs
     if col3.button("Discover New Songs", help="Click to discover new songs"):
         discover_df = df.sample(n=10)
         for row in discover_df.to_numpy():
@@ -96,6 +113,7 @@ def explore_page():
     col4.title("Contextual Discovery")
 
     
+    # place selection dropdown
     place = col4.selectbox(
         'Where are you',
         ('Library', 'Dorm', 'Party'), 
@@ -103,6 +121,7 @@ def explore_page():
         index=None,
         placeholder="Choose your location",)
     
+    # mood selection dropdown
     mood = col4.selectbox(
         'How are you feeling',
         ('Happy', 'Sad'), 
@@ -139,9 +158,9 @@ def playlist_page():
         st.session_state.playlist_id = playlist_id
     
         # Add your playlist logic here
-        st.write(f"Current Playlist ID: {st.session_state.playlist_id}")
+        st.write(f"Getting recommendations for Playlist ID: {st.session_state.playlist_id}")
 
-        # Get the playlist ID from the session state
+        # Get the recommended songs
         df = mr.get(playlist_id)
         df[0].to_csv("data/recommended.csv", index=False)
         df[1].to_csv("data/recommended_no_preview.csv", index=False)
