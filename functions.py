@@ -222,6 +222,10 @@ def userInput(playlist_id, sp, all_sps):
     r_s_no_preview = recommended_songs.loc[recommended_songs['track_preview'].isnull()]
     recommended_songs.dropna(inplace=True)
 
+    for track in track_ids:
+        recommended_songs = recommended_songs.loc[recommended_songs['song_id'] != track]
+        r_s_no_preview = r_s_no_preview.loc[r_s_no_preview['song_id'] != track]
+
     r_s_no_preview.reset_index(inplace=True, drop=True)
     recommended_songs.reset_index(inplace=True, drop=True)
     
