@@ -154,6 +154,7 @@ def recommendation_page():
     navigation_bar()  # Include the navigation bar on the recommendation page
 
     df = pd.read_csv("data/recommended.csv")
+    #df = df.sample(frac=1, random_state=42).reset_index(drop=True)
     df.drop_duplicates(subset=["song_name", "artist"], inplace=True)
     st.session_state.currently_playing_track = st.empty()
     st.session_state.currently_playing_track = dict(df.iloc[st.session_state.current_song])
